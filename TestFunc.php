@@ -2,14 +2,16 @@
 namespace Tests;
 
 require './vendor/autoload.php';
+require 'SongService.php';
 
 use PHPUnit\Framework\TestCase;
+use SongLevel\SongService;
 
 class TestFunc extends TestCase
 {
     public function testSongProbability()
     {
-        include_once 'main.php';
+        $song_service = new SongService();
 
         $one_third = 0.33333333333333;
         $default_probability = [
@@ -30,10 +32,10 @@ class TestFunc extends TestCase
             'hard' => 1.688422399177,
         ];
 
-        init();
-        $sample1 = classify(['d', 'g', 'e', 'dm']);
-        $sample2 = classify(['f#m7', 'a', 'dadd9', 'dmaj7', 'bm', 'bm7', 'd', 'f#m']);
-        
+        $song_service->loadTraining();
+        $sample1 = $song_service->classify(['d', 'g', 'e', 'dm']);
+        $sample2 = $song_service->classify(['f#m7', 'a', 'dadd9', 'dmaj7', 'bm', 'bm7', 'd', 'f#m']);
+
         $this->assertEquals($default_probability, $sample1['ttal']);
         $this->assertEquals($default_probability, $sample2['ttal']);
         $this->assertEquals($sample1_probability, $sample1['classified']);
