@@ -55,10 +55,11 @@ class SongService
 
     private function setProbabilityOfChordsInLabels($chord_counts_in_labels)
     {
-        foreach (array_keys($chord_counts_in_labels) as $i) {
-            foreach (array_keys($chord_counts_in_labels[$i]) as $j) {
-                $this->probability_of_chords_in_labels[$i][$j] = $chord_counts_in_labels[$i][$j] * 1.0 / $this->getNumberOfSongs();
-            }
+        $numberOfSongs = $this->getNumberOfSongs();
+        foreach (array_keys($chord_counts_in_labels) as $label) {
+            $this->probability_of_chords_in_labels[$label] = array_map(function ($chord) use ($numberOfSongs) {
+                return $chord / $numberOfSongs;
+            }, $chord_counts_in_labels[$label]);
         }
     }
 
