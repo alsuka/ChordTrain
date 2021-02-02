@@ -94,20 +94,19 @@ class SongService
     public function classify($chords)
     {
         $label_probabilities = $this->getLabelProbabilities();
-        print_r($label_probabilities);
+
         $classified = [];
-        foreach (array_keys($label_probabilities) as $obj) {
-            $first = $label_probabilities[$obj] + 1.01;
+        foreach (array_keys($label_probabilities) as $label) {
+            $first_weight = $label_probabilities[$label] + 1.01;
             foreach ($chords as $chord) {
-                $probabilityOfChordInLabel = $this->probability_of_chords_in_labels[$obj][$chord];
-                if (!isset($probabilityOfChordInLabel)) {
-                    $first + 1.01;
-                } else {
-                    $first = $first * ($probabilityOfChordInLabel + 1.01);
+                $probability_of_chord = $this->probability_of_chords_in_labels[$label][$chord];
+                if (isset($probability_of_chord)) {
+                    $first_weight = $first_weight * ($probability_of_chord + 1.01);
                 }
-                $classified[$obj] = $first;
+                $classified[$label] = $first_weight;
             }
         }
+        print_r($label_probabilities);
         print_r($classified);
 
         return [
