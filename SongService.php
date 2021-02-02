@@ -9,7 +9,6 @@ class SongService
         $this->songs = [];
         $this->all_chords = [];
         $this->label_counts = [];
-        $this->label_probabilities = [];
         $this->chord_counts_in_labels = [];
         $this->probability_of_chords_in_labels = [];
     }
@@ -29,12 +28,14 @@ class SongService
         return count($this->songs);
     }
 
-    private function setLabelProbabilities()
+    private function getLabelProbabilities()
     {
-        foreach (array_keys($this->label_counts) as $label) {
-            $numberOfSongs = $this->getNumberOfSongs();
-            $this->label_probabilities[$label] = $this->label_counts[$label] / $numberOfSongs;
-        }
+        $numberOfSongs = $this->getNumberOfSongs();
+        $label_probabilities = array_map(function ($label_count) use ($numberOfSongs) {
+            return $label_count / $numberOfSongs;
+        }, $this->label_counts);
+
+        return $label_probabilities;
     }
 
     private function setChordCountsInLabels()
@@ -90,18 +91,17 @@ class SongService
         $this->train($toxic, 'hard');
         $this->train($bulletproof, 'hard');
 
-        $this->setLabelProbabilities();
         $this->setChordCountsInLabels();
         $this->setProbabilityOfChordsInLabels();
     }
 
     public function classify($chords)
     {
-        $ttal = $this->label_probabilities;
-        print_r($ttal);
+        $label_probabilities = $this->getLabelProbabilities();
+        print_r($label_probabilities);
         $classified = [];
-        foreach (array_keys($ttal) as $obj) {
-            $first = $this->label_probabilities[$obj] + 1.01;
+        foreach (array_keys($label_probabilities) as $obj) {
+            $first = $label_probabilities[$obj] + 1.01;
             foreach ($chords as $chord) {
                 $probabilityOfChordInLabel = $this->probability_of_chords_in_labels[$obj][$chord];
                 if (!isset($probabilityOfChordInLabel)) {
@@ -115,7 +115,7 @@ class SongService
         print_r($classified);
 
         return [
-            'ttal' => $ttal,
+            'label_probabilities' => $label_probabilities,
             'classified' => $classified,
         ];
     }

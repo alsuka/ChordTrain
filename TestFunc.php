@@ -36,8 +36,8 @@ class TestFunc extends TestCase
         $sample1 = $song_service->classify(['d', 'g', 'e', 'dm']);
         $sample2 = $song_service->classify(['f#m7', 'a', 'dadd9', 'dmaj7', 'bm', 'bm7', 'd', 'f#m']);
 
-        $this->assertEquals($default_probability, $sample1['ttal']);
-        $this->assertEquals($default_probability, $sample2['ttal']);
+        $this->assertEquals($default_probability, $sample1['label_probabilities']);
+        $this->assertEquals($default_probability, $sample2['label_probabilities']);
         $this->assertEquals($sample1_probability, $sample1['classified']);
         $this->assertEquals($sample2_probability, $sample2['classified']);
     }
