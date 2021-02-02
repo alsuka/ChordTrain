@@ -6,53 +6,56 @@ class SongService
 {
     public function __construct()
     {
-        $GLOBALS['allChords'] = [];
-        $GLOBALS['labelCounts'] = [];
+        $this->songs = [];
+        $this->all_chords = [];
+        $this->label_counts = [];
+        $this->label_probabilities = [];
+        $this->chord_counts_in_labels = [];
+        $this->probability_of_chords_in_labels = [];
     }
 
     private function train($chords, $label)
     {
-        $GLOBALS['songs'][] = [$label, $chords];
-        $GLOBALS['label'][] = $label;
+        $this->songs[] = [$label, $chords];
         for ($i = 0; $i < count($chords); $i++) {
-            if (!in_array($chords[$i], $GLOBALS['allChords'])) {
-                $GLOBALS['allChords'][] = $chords[$i];
+            if (!in_array($chords[$i], $this->all_chords)) {
+                $this->all_chords[] = $chords[$i];
             }
         }
-        if (!!(in_array($label, array_keys($GLOBALS['labelCounts'])))) {
-            $GLOBALS['labelCounts'][$label] = $GLOBALS['labelCounts'][$label] + 1;
+        if (!!(in_array($label, array_keys($this->label_counts)))) {
+            $this->label_counts[$label] = $this->label_counts[$label] + 1;
         } else {
-            $GLOBALS['labelCounts'][$label] = 1;
+            $this->label_counts[$label] = 1;
         }
     }
 
     private function getNumberOfSongs()
     {
-        return count($GLOBALS['songs']);
+        return count($this->songs);
     }
 
     private function setLabelProbabilities()
     {
-        foreach (array_keys($GLOBALS['labelCounts']) as $label) {
+        foreach (array_keys($this->label_counts) as $label) {
             $numberOfSongs = $this->getNumberOfSongs();
-            $GLOBALS['labelProbabilities'][$label] = $GLOBALS['labelCounts'][$label] / $numberOfSongs;
+            $this->label_probabilities[$label] = $this->label_counts[$label] / $numberOfSongs;
         }
     }
 
     private function setChordCountsInLabels()
     {
-        foreach ($GLOBALS['songs'] as $i) {
-            if (!isset($GLOBALS['chordCountsInLabels'][$i[0]])) {
-                $GLOBALS['chordCountsInLabels'][$i[0]] = [];
+        foreach ($this->songs as $i) {
+            if (!isset($this->chord_counts_in_labels[$i[0]])) {
+                $this->chord_counts_in_labels[$i[0]] = [];
             }
             if (! isset($i[1])) {
                 continue;
             }
             foreach ($i[1] as $j) {
-                if ($GLOBALS['chordCountsInLabels'][$i[0]][$j] > 0) {
-                    $GLOBALS['chordCountsInLabels'][$i[0]][$j] = $GLOBALS['chordCountsInLabels'][$i[0]][$j] + 1;
+                if ($this->chord_counts_in_labels[$i[0]][$j] > 0) {
+                    $this->chord_counts_in_labels[$i[0]][$j] = $this->chord_counts_in_labels[$i[0]][$j] + 1;
                 } else {
-                    $GLOBALS['chordCountsInLabels'][$i[0]][$j] = 1;
+                    $this->chord_counts_in_labels[$i[0]][$j] = 1;
                 }
             }
         }
@@ -60,10 +63,10 @@ class SongService
 
     private function setProbabilityOfChordsInLabels()
     {
-        $GLOBALS['probabilityOfChordsInLabels'] = $GLOBALS['chordCountsInLabels'];
-        foreach (array_keys($GLOBALS['probabilityOfChordsInLabels']) as $i) {
-            foreach (array_keys($GLOBALS['probabilityOfChordsInLabels'][$i]) as $j) {
-                $GLOBALS['probabilityOfChordsInLabels'][$i][$j] = $GLOBALS['probabilityOfChordsInLabels'][$i][$j] * 1.0 / $this->getNumberOfSongs();
+        $this->probability_of_chords_in_labels = $this->chord_counts_in_labels;
+        foreach (array_keys($this->probability_of_chords_in_labels) as $i) {
+            foreach (array_keys($this->probability_of_chords_in_labels[$i]) as $j) {
+                $this->probability_of_chords_in_labels[$i][$j] = $this->probability_of_chords_in_labels[$i][$j] * 1.0 / $this->getNumberOfSongs();
             }
         }
     }
@@ -99,13 +102,13 @@ class SongService
 
     public function classify($chords)
     {
-        $ttal = $GLOBALS['labelProbabilities'];
+        $ttal = $this->label_probabilities;
         print_r($ttal);
         $classified = [];
         foreach (array_keys($ttal) as $obj) {
-            $first = $GLOBALS['labelProbabilities'][$obj] + 1.01;
+            $first = $this->label_probabilities[$obj] + 1.01;
             foreach ($chords as $chord) {
-                $probabilityOfChordInLabel = $GLOBALS['probabilityOfChordsInLabels'][$obj][$chord];
+                $probabilityOfChordInLabel = $this->probability_of_chords_in_labels[$obj][$chord];
                 if (!isset($probabilityOfChordInLabel)) {
                     $first + 1.01;
                 } else {
@@ -122,4 +125,3 @@ class SongService
         ];
     }
 }
-
