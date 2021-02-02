@@ -17,16 +17,11 @@ class SongService
     private function train($chords, $label)
     {
         $this->songs[] = [$label, $chords];
-        for ($i = 0; $i < count($chords); $i++) {
-            if (!in_array($chords[$i], $this->all_chords)) {
-                $this->all_chords[] = $chords[$i];
-            }
+        $this->all_chords = array_unique(array_merge($this->all_chords, $chords));
+        if (! isset($this->label_counts[$label])) {
+            $this->label_counts[$label] = 0;
         }
-        if (!!(in_array($label, array_keys($this->label_counts)))) {
-            $this->label_counts[$label] = $this->label_counts[$label] + 1;
-        } else {
-            $this->label_counts[$label] = 1;
-        }
+        $this->label_counts[$label]++;
     }
 
     private function getNumberOfSongs()
