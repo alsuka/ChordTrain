@@ -9,7 +9,6 @@ class SongService
         $this->songs = [];
         $this->all_chords = [];
         $this->label_counts = [];
-        $this->chord_counts_in_labels = [];
         $this->probability_of_chords_in_labels = [];
     }
 
@@ -38,31 +37,27 @@ class SongService
         return $label_probabilities;
     }
 
-    private function setChordCountsInLabels()
+    private function getChordCountsInLabels()
     {
-        foreach ($this->songs as $i) {
-            if (!isset($this->chord_counts_in_labels[$i[0]])) {
-                $this->chord_counts_in_labels[$i[0]] = [];
-            }
-            if (! isset($i[1])) {
-                continue;
-            }
-            foreach ($i[1] as $j) {
-                if ($this->chord_counts_in_labels[$i[0]][$j] > 0) {
-                    $this->chord_counts_in_labels[$i[0]][$j] = $this->chord_counts_in_labels[$i[0]][$j] + 1;
-                } else {
-                    $this->chord_counts_in_labels[$i[0]][$j] = 1;
-                }
+        $chord_counts_in_labels = array_map(function ($label_count) {
+            return [];
+        }, $this->label_counts);
+        foreach ($this->songs as $song) {
+            $label = $song[0];
+            $song_chords = $song[1];
+            foreach ($song_chords as $chord) {
+                $chord_counts_in_labels[$label][$chord]++;
             }
         }
+
+        return $chord_counts_in_labels;
     }
 
-    private function setProbabilityOfChordsInLabels()
+    private function setProbabilityOfChordsInLabels($chord_counts_in_labels)
     {
-        $this->probability_of_chords_in_labels = $this->chord_counts_in_labels;
-        foreach (array_keys($this->probability_of_chords_in_labels) as $i) {
-            foreach (array_keys($this->probability_of_chords_in_labels[$i]) as $j) {
-                $this->probability_of_chords_in_labels[$i][$j] = $this->probability_of_chords_in_labels[$i][$j] * 1.0 / $this->getNumberOfSongs();
+        foreach (array_keys($chord_counts_in_labels) as $i) {
+            foreach (array_keys($chord_counts_in_labels[$i]) as $j) {
+                $this->probability_of_chords_in_labels[$i][$j] = $chord_counts_in_labels[$i][$j] * 1.0 / $this->getNumberOfSongs();
             }
         }
     }
@@ -91,8 +86,8 @@ class SongService
         $this->train($toxic, 'hard');
         $this->train($bulletproof, 'hard');
 
-        $this->setChordCountsInLabels();
-        $this->setProbabilityOfChordsInLabels();
+        $chord_counts_in_labels = $this->getChordCountsInLabels();
+        $this->setProbabilityOfChordsInLabels($chord_counts_in_labels);
     }
 
     public function classify($chords)
